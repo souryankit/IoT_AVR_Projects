@@ -1,0 +1,219 @@
+
+BLACK_LINE_FOLLOWER_for_ATmega8_iBOT_mini_V3.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         000000c8  00000000  00000000  00000054  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .debug_aranges 00000020  00000000  00000000  0000011c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  2 .debug_pubnames 0000001b  00000000  00000000  0000013c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  3 .debug_info   0000009a  00000000  00000000  00000157  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  4 .debug_abbrev 00000068  00000000  00000000  000001f1  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_line   00000137  00000000  00000000  00000259  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_frame  00000020  00000000  00000000  00000390  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_str    000000d8  00000000  00000000  000003b0  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_loc    00000028  00000000  00000000  00000488  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	12 c0       	rjmp	.+36     	; 0x26 <__ctors_end>
+   2:	19 c0       	rjmp	.+50     	; 0x36 <__bad_interrupt>
+   4:	18 c0       	rjmp	.+48     	; 0x36 <__bad_interrupt>
+   6:	17 c0       	rjmp	.+46     	; 0x36 <__bad_interrupt>
+   8:	16 c0       	rjmp	.+44     	; 0x36 <__bad_interrupt>
+   a:	15 c0       	rjmp	.+42     	; 0x36 <__bad_interrupt>
+   c:	14 c0       	rjmp	.+40     	; 0x36 <__bad_interrupt>
+   e:	13 c0       	rjmp	.+38     	; 0x36 <__bad_interrupt>
+  10:	12 c0       	rjmp	.+36     	; 0x36 <__bad_interrupt>
+  12:	11 c0       	rjmp	.+34     	; 0x36 <__bad_interrupt>
+  14:	10 c0       	rjmp	.+32     	; 0x36 <__bad_interrupt>
+  16:	0f c0       	rjmp	.+30     	; 0x36 <__bad_interrupt>
+  18:	0e c0       	rjmp	.+28     	; 0x36 <__bad_interrupt>
+  1a:	0d c0       	rjmp	.+26     	; 0x36 <__bad_interrupt>
+  1c:	0c c0       	rjmp	.+24     	; 0x36 <__bad_interrupt>
+  1e:	0b c0       	rjmp	.+22     	; 0x36 <__bad_interrupt>
+  20:	0a c0       	rjmp	.+20     	; 0x36 <__bad_interrupt>
+  22:	09 c0       	rjmp	.+18     	; 0x36 <__bad_interrupt>
+  24:	08 c0       	rjmp	.+16     	; 0x36 <__bad_interrupt>
+
+00000026 <__ctors_end>:
+  26:	11 24       	eor	r1, r1
+  28:	1f be       	out	0x3f, r1	; 63
+  2a:	cf e5       	ldi	r28, 0x5F	; 95
+  2c:	d4 e0       	ldi	r29, 0x04	; 4
+  2e:	de bf       	out	0x3e, r29	; 62
+  30:	cd bf       	out	0x3d, r28	; 61
+  32:	02 d0       	rcall	.+4      	; 0x38 <main>
+  34:	47 c0       	rjmp	.+142    	; 0xc4 <_exit>
+
+00000036 <__bad_interrupt>:
+  36:	e4 cf       	rjmp	.-56     	; 0x0 <__vectors>
+
+00000038 <main>:
+
+#include<avr/io.h>
+
+void main()
+{
+	DDRD=0b11111111;  // set PD4 as output bit
+  38:	8f ef       	ldi	r24, 0xFF	; 255
+  3a:	81 bb       	out	0x11, r24	; 17
+	DDRC=0b0000000;   // set PORTC as input port
+  3c:	14 ba       	out	0x14, r1	; 20
+	DDRB=0b00011110;  // PB1, PB2, PB3, PB4 as output port
+  3e:	8e e1       	ldi	r24, 0x1E	; 30
+  40:	87 bb       	out	0x17, r24	; 23
+	ls=(PINC&0b0001000);    // acquire only right sensor status connected at PC3
+	PORTD = ~PORTD;		
+		
+		if((rs==0b0000001)||(ls==0b0001000)) 
+		{
+		PORTD=(1<<4);
+  42:	60 e1       	ldi	r22, 0x10	; 16
+		}
+
+		if((rs==0b0000000)&&(ls==0b0000000)) // check sensor status for both sensor OFF 
+		{
+
+			PORTB=0b00011110;  // stop
+  44:	fe e1       	ldi	r31, 0x1E	; 30
+		
+
+        if((rs==0b0000001)&&(ls==0b0001000) ) // check sensor status for both sensor ON 
+		{
+
+			PORTB=0b00010010;    //move forward
+  46:	e2 e1       	ldi	r30, 0x12	; 18
+	
+		if((rs==0b0000000)&(ls==0b0001000))  //check sensor status for left sensor=OFF and
+		                                     // right sensor=ON
+		{
+			 
+			PORTB=0b00000010;     //turn left
+  48:	72 e0       	ldi	r23, 0x02	; 2
+					       // status in rs 
+	
+	while(1)          // create infinite loop
+	{
+	
+	rs=(PINC&0b0000001);    // acquire only left sensor status connected at PC0
+  4a:	83 b3       	in	r24, 0x13	; 19
+  4c:	90 e0       	ldi	r25, 0x00	; 0
+	ls=(PINC&0b0001000);    // acquire only right sensor status connected at PC3
+  4e:	23 b3       	in	r18, 0x13	; 19
+  50:	42 2f       	mov	r20, r18
+  52:	50 e0       	ldi	r21, 0x00	; 0
+  54:	48 70       	andi	r20, 0x08	; 8
+  56:	50 70       	andi	r21, 0x00	; 0
+	PORTD = ~PORTD;		
+  58:	22 b3       	in	r18, 0x12	; 18
+  5a:	20 95       	com	r18
+  5c:	22 bb       	out	0x12, r18	; 18
+		
+		if((rs==0b0000001)||(ls==0b0001000)) 
+  5e:	9c 01       	movw	r18, r24
+  60:	21 70       	andi	r18, 0x01	; 1
+  62:	30 70       	andi	r19, 0x00	; 0
+  64:	80 fd       	sbrc	r24, 0
+  66:	03 c0       	rjmp	.+6      	; 0x6e <__SREG__+0x2f>
+  68:	48 30       	cpi	r20, 0x08	; 8
+  6a:	51 05       	cpc	r21, r1
+  6c:	21 f4       	brne	.+8      	; 0x76 <__SREG__+0x37>
+		{
+		PORTD=(1<<4);
+  6e:	62 bb       	out	0x12, r22	; 18
+		}
+
+		if((rs==0b0000000)&&(ls==0b0000000)) // check sensor status for both sensor OFF 
+  70:	21 15       	cp	r18, r1
+  72:	31 05       	cpc	r19, r1
+  74:	31 f4       	brne	.+12     	; 0x82 <__SREG__+0x43>
+  76:	41 15       	cp	r20, r1
+  78:	51 05       	cpc	r21, r1
+  7a:	09 f4       	brne	.+2      	; 0x7e <__SREG__+0x3f>
+		{
+
+			PORTB=0b00011110;  // stop
+  7c:	f8 bb       	out	0x18, r31	; 24
+  7e:	20 e0       	ldi	r18, 0x00	; 0
+  80:	30 e0       	ldi	r19, 0x00	; 0
+			ls=0;              // set sensor status off
+			rs=0;              // set sensor status off
+		
+		}
+
+		if((rs==0b0000001)&(ls==0b0000000))  // check sensor status for left sensor=ON and
+  82:	21 30       	cpi	r18, 0x01	; 1
+  84:	31 05       	cpc	r19, r1
+  86:	39 f4       	brne	.+14     	; 0x96 <__SREG__+0x57>
+  88:	41 15       	cp	r20, r1
+  8a:	51 05       	cpc	r21, r1
+  8c:	21 f4       	brne	.+8      	; 0x96 <__SREG__+0x57>
+		                                     // right sensor=OFF
+		{
+			
+			PORTB=0b00010000;    // turn right
+  8e:	68 bb       	out	0x18, r22	; 24
+			PORTD =(1<<4);
+  90:	62 bb       	out	0x12, r22	; 18
+  92:	20 e0       	ldi	r18, 0x00	; 0
+  94:	30 e0       	ldi	r19, 0x00	; 0
+			rs=0; 				 // set sensor status off
+				            
+		}
+	
+	
+		if((rs==0b0000000)&(ls==0b0001000))  //check sensor status for left sensor=OFF and
+  96:	80 e0       	ldi	r24, 0x00	; 0
+  98:	48 30       	cpi	r20, 0x08	; 8
+  9a:	51 05       	cpc	r21, r1
+  9c:	09 f4       	brne	.+2      	; 0xa0 <__SREG__+0x61>
+  9e:	81 e0       	ldi	r24, 0x01	; 1
+  a0:	21 15       	cp	r18, r1
+  a2:	31 05       	cpc	r19, r1
+  a4:	29 f4       	brne	.+10     	; 0xb0 <__SREG__+0x71>
+  a6:	88 23       	and	r24, r24
+  a8:	19 f0       	breq	.+6      	; 0xb0 <__SREG__+0x71>
+		                                     // right sensor=ON
+		{
+			 
+			PORTB=0b00000010;     //turn left
+  aa:	78 bb       	out	0x18, r23	; 24
+			PORTD =(1<<4);
+  ac:	62 bb       	out	0x12, r22	; 18
+  ae:	cd cf       	rjmp	.-102    	; 0x4a <__SREG__+0xb>
+			 
+		}
+	
+		
+
+        if((rs==0b0000001)&&(ls==0b0001000) ) // check sensor status for both sensor ON 
+  b0:	21 30       	cpi	r18, 0x01	; 1
+  b2:	31 05       	cpc	r19, r1
+  b4:	51 f6       	brne	.-108    	; 0x4a <__SREG__+0xb>
+  b6:	88 23       	and	r24, r24
+  b8:	41 f2       	breq	.-112    	; 0x4a <__SREG__+0xb>
+		{
+
+			PORTB=0b00010010;    //move forward
+  ba:	e8 bb       	out	0x18, r30	; 24
+			PORTD =~PORTD;     
+  bc:	82 b3       	in	r24, 0x12	; 18
+  be:	80 95       	com	r24
+  c0:	82 bb       	out	0x12, r24	; 18
+  c2:	c3 cf       	rjmp	.-122    	; 0x4a <__SREG__+0xb>
+
+000000c4 <_exit>:
+  c4:	f8 94       	cli
+
+000000c6 <__stop_program>:
+  c6:	ff cf       	rjmp	.-2      	; 0xc6 <__stop_program>
